@@ -4,8 +4,7 @@
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
-    "dev": "node server.js",
-    "build": "echo building user-api"
+    "dev": "node server.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
