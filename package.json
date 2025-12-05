@@ -1,10 +1,9 @@
 {
   "name": "user-api",
   "version": "1.0.0",
-  "main": "server.js",
-  "type": "commonjs",
   "scripts": {
-    "dev": "node server.js"
+    "dev": "node api/user.js",
+    "build": "echo \"No build step required\""
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
