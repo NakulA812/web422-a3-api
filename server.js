@@ -1,12 +1,18 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const mongoose = require("mongoose");
 
 const userRoutes = require("./api/user");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Connect MongoDB
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => console.error(err));
 
 // API routes
 app.use("/api/user", userRoutes);
@@ -16,8 +22,7 @@ app.get("/", (req, res) => {
   res.json({ message: "User API is running" });
 });
 
-// Start server (Vercel ignores this locally, but useful for local dev)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-module.exports = app; // REQUIRED for Vercel
+module.exports = app;
