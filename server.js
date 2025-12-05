@@ -117,4 +117,3 @@ app.delete('/api/user/favourites/:id', auth, async (req, res) => {
 });
 
 module.exports = app;
-module.exports.handler = serverless(app);
