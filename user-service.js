@@ -1,98 +1,58 @@
-const bcrypt = require("bcryptjs");
-const User = require("./models/User");
+// user-service.js
+const mongoose = require('mongoose');
+const User = require('./models/User');
+const bcrypt = require('bcryptjs');
 
-//
-// REGISTER USER
-//
-async function registerUser({ userName, password }) {
-  if (!userName || !password) {
-    throw new Error("Missing userName or password");
-  }
+async function connect(mongoUrl) {
+  await mongoose.connect(mongoUrl, { });
+  console.log('Connected to MongoDB');
+}
 
-  // Check duplicate
+async function createUser(userName, password) {
   const existing = await User.findOne({ userName });
-  if (existing) {
-    throw new Error("User already exists");
-  }
-
-  // Hash password
+  if (existing) throw new Error('User already exists');
   const hash = await bcrypt.hash(password, 10);
-
-  // Save user
-  const newUser = new User({
-    userName,
-    passwordHash: hash,
-    favourites: []
-  });
-
-  await newUser.save();
-
-  return { message: "User registered successfully" };
+  const user = new User({ userName, passwordHash: hash });
+  await user.save();
+  return { _id: user._id, userName: user.userName };
 }
 
-//
-// LOGIN USER
-//
-async function loginUser({ userName, password }) {
-  if (!userName || !password) {
-    throw new Error("Missing userName or password");
-  }
-
+async function checkUser(userName, password) {
   const user = await User.findOne({ userName });
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  // Compare password
-  const valid = await bcrypt.compare(password, user.passwordHash);
-  if (!valid) {
-    throw new Error("Incorrect password");
-  }
-
-  return { message: "Login successful", userName: user.userName };
+  if (!user) return null;
+  const ok = await bcrypt.compare(password, user.passwordHash);
+  if (!ok) return null;
+  return { _id: user._id.toString(), userName: user.userName };
 }
 
-//
-// GET FAVOURITES
-//
-async function getFavourites(userName) {
-  const user = await User.findOne({ userName });
-  if (!user) throw new Error("User not found");
-
-  return user.favourites;
+async function getFavourites(userId) {
+  const user = await User.findById(userId);
+  if (!user) return [];
+  return user.favourites || [];
 }
 
-//
-// ADD FAVOURITE
-//
-async function addFavourite(userName, workId) {
-  const user = await User.findOne({ userName });
-  if (!user) throw new Error("User not found");
-
+async function addFavourite(userId, workId) {
+  const user = await User.findById(userId);
+  if (!user) return [];
   if (!user.favourites.includes(workId)) {
     user.favourites.push(workId);
     await user.save();
   }
-
   return user.favourites;
 }
 
-//
-// REMOVE FAVOURITE
-//
-async function removeFavourite(userName, workId) {
-  const user = await User.findOne({ userName });
-  if (!user) throw new Error("User not found");
-
-  user.favourites = user.favourites.filter(id => id !== workId);
+async function removeFavourite(userId, workId) {
+  const user = await User.findById(userId);
+  if (!user) return [];
+  user.favourites = user.favourites.filter(w => w !== workId);
   await user.save();
-
   return user.favourites;
 }
 
 module.exports = {
-  registerUser,
-  loginUser,
+  connect,
+  createUser,
+  checkUser,
   getFavourites,
   addFavourite,
   removeFavourite
